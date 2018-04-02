@@ -266,7 +266,7 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor, Runnable {
                     logger.trace(Thread.currentThread().getName() + "：当前运行线程数量:" + this.m_lockObject.count());
                 }
                 if (this.m_lockObject.realseThreadButNotLast() == false) {
-                    int size = 0;
+                    int size;
                     Thread.currentThread().sleep(100);
                     startTime = scheduleManager.scheduleCenter.getSystemTime();
                     // 装载数据
@@ -311,7 +311,7 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor, Runnable {
     }
 
     public void addSuccessNum(long num, long spendTime, String addr) {
-        this.statisticsInfo.addDealDataSucess(num);
+        this.statisticsInfo.addDealDataSuccess(num);
         this.statisticsInfo.addDealSpendTime(spendTime);
     }
 

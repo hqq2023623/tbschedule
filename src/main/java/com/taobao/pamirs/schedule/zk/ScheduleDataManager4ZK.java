@@ -20,6 +20,9 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * 管理server、taskItem、baseTaskType节点
+ */
 public class ScheduleDataManager4ZK implements IScheduleDataManager {
     private static transient Logger log = LoggerFactory.getLogger(ScheduleDataManager4ZK.class);
     private Gson gson;
@@ -28,7 +31,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
     private String PATH_TaskItem = "taskItem";
     private String PATH_Server = "server";
     private long zkBaseTime = 0;
-    private long loclaBaseTime = 0;
+    private long localBaseTime = 0;
 
     public ScheduleDataManager4ZK(ZKManager aZkManager) throws Exception {
         this.zkManager = aZkManager;
@@ -39,13 +42,13 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
         if (this.getZooKeeper().exists(this.PATH_BaseTaskType, false) == null) {
             ZKTools.createPath(getZooKeeper(), this.PATH_BaseTaskType, CreateMode.PERSISTENT, this.zkManager.getAcl());
         }
-        loclaBaseTime = System.currentTimeMillis();
+        localBaseTime = System.currentTimeMillis();
         String tempPath = this.zkManager.getZooKeeper().create(this.zkManager.getRootPath() + "/systime", null, this.zkManager.getAcl(), CreateMode.EPHEMERAL_SEQUENTIAL);
         Stat tempStat = this.zkManager.getZooKeeper().exists(tempPath, false);
         zkBaseTime = tempStat.getCtime();
         ZKTools.deleteTree(getZooKeeper(), tempPath);
-        if (Math.abs(this.zkBaseTime - this.loclaBaseTime) > 5000) {
-            log.error("请注意，Zookeeper服务器时间与本地时间相差 ： " + Math.abs(this.zkBaseTime - this.loclaBaseTime) + " ms");
+        if (Math.abs(this.zkBaseTime - this.localBaseTime) > 5000) {
+            log.error("请注意，Zookeeper服务器时间与本地时间相差 ： " + Math.abs(this.zkBaseTime - this.localBaseTime) + " ms");
         }
     }
 
@@ -113,15 +116,15 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
         //创建静态任务
         this.createScheduleTaskItem(baseTaskType, ownSign, this.loadTaskTypeBaseInfo(baseTaskType).getTaskItems());
         //标记信息初始化成功
-        setInitialRunningInfoSucuss(baseTaskType, taskType, uuid);
+        setInitialRunningInfoSuccess(baseTaskType, taskType, uuid);
     }
 
-    public void setInitialRunningInfoSucuss(String baseTaskType, String taskType, String uuid) throws Exception {
+    public void setInitialRunningInfoSuccess(String baseTaskType, String taskType, String uuid) throws Exception {
         String zkPath = this.PATH_BaseTaskType + "/" + baseTaskType + "/" + taskType + "/" + this.PATH_TaskItem;
         this.getZooKeeper().setData(zkPath, uuid.getBytes(), -1);
     }
 
-    public boolean isInitialRunningInfoSucuss(String baseTaskType, String ownSign) throws Exception {
+    public boolean isInitialRunningInfoSuccess(String baseTaskType, String ownSign) throws Exception {
         String taskType = ScheduleUtil.getTaskTypeByBaseAndOwnSign(baseTaskType, ownSign);
         String leader = this.getLeader(this.loadScheduleServerNames(taskType));
         String zkPath = this.PATH_BaseTaskType + "/" + baseTaskType + "/" + taskType + "/" + this.PATH_TaskItem;
@@ -309,7 +312,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
             return null;
         }
         String valueString = new String(this.getZooKeeper().getData(zkPath, false, null));
-        ScheduleTaskType result = (ScheduleTaskType) this.gson.fromJson(valueString, ScheduleTaskType.class);
+        ScheduleTaskType result = this.gson.fromJson(valueString, ScheduleTaskType.class);
         return result;
     }
 
@@ -588,7 +591,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
         for (String name : serverList) {
             try {
                 String valueString = new String(this.getZooKeeper().getData(zkPath + "/" + name, false, null));
-                ScheduleServer server = (ScheduleServer) this.gson.fromJson(valueString, ScheduleServer.class);
+                ScheduleServer server = this.gson.fromJson(valueString, ScheduleServer.class);
                 server.setCenterServerTime(new Timestamp(this.getSystemTime()));
                 result.add(server);
             } catch (Exception e) {
@@ -606,7 +609,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
                 String zkPath = this.PATH_BaseTaskType + "/" + baseTaskType + "/" + taskType + "/" + this.PATH_Server;
                 for (String uuid : this.getZooKeeper().getChildren(zkPath, false)) {
                     String valueString = new String(this.getZooKeeper().getData(zkPath + "/" + uuid, false, null));
-                    ScheduleServer server = (ScheduleServer) this.gson.fromJson(valueString, ScheduleServer.class);
+                    ScheduleServer server =  this.gson.fromJson(valueString, ScheduleServer.class);
                     server.setCenterServerTime(new Timestamp(this.getSystemTime()));
                     if (server.getManagerFactoryUUID().equals(factoryUUID)) {
                         result.add(server);
@@ -873,7 +876,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 
 
     public long getSystemTime() {
-        return this.zkBaseTime + (System.currentTimeMillis() - this.loclaBaseTime);
+        return this.zkBaseTime + (System.currentTimeMillis() - this.localBaseTime);
     }
 
 }
@@ -904,34 +907,19 @@ class ScheduleServerComparator implements Comparator<ScheduleServer> {
         for (String name : orderFields) {
             if (name.equals("TASK_TYPE")) {
                 result = compareObject(o1.getTaskType(), o2.getTaskType());
-                if (result != 0) {
-                    return result;
-                }
             } else if (name.equals("OWN_SIGN")) {
                 result = compareObject(o1.getOwnSign(), o2.getOwnSign());
-                if (result != 0) {
-                    return result;
-                }
             } else if (name.equals("REGISTER_TIME")) {
                 result = compareObject(o1.getRegisterTime(), o2.getRegisterTime());
-                if (result != 0) {
-                    return result;
-                }
             } else if (name.equals("HEARTBEAT_TIME")) {
                 result = compareObject(o1.getHeartBeatTime(), o2.getHeartBeatTime());
-                if (result != 0) {
-                    return result;
-                }
             } else if (name.equals("IP")) {
                 result = compareObject(o1.getIp(), o2.getIp());
-                if (result != 0) {
-                    return result;
-                }
             } else if (name.equals("MANAGER_FACTORY")) {
                 result = compareObject(o1.getManagerFactoryUUID(), o2.getManagerFactoryUUID());
-                if (result != 0) {
-                    return result;
-                }
+            }
+            if (result != 0) {
+                return result;
             }
         }
         return result;
@@ -952,7 +940,7 @@ class TimestampTypeAdapter implements JsonSerializer<Timestamp>, JsonDeserialize
 
         try {
             DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            Date date = (Date) format.parse(json.getAsString());
+            Date date = format.parse(json.getAsString());
             return new Timestamp(date.getTime());
         } catch (Exception e) {
             throw new JsonParseException(e);

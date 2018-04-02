@@ -692,7 +692,7 @@ public class CronExpression implements Serializable, Cloneable {
                         + i + ")", i);
             }
             TreeSet set = getSet(type);
-            set.add(new Integer(val));
+            set.add(val);
             i++;
             return i;
         }
@@ -705,7 +705,7 @@ public class CronExpression implements Serializable, Cloneable {
                         + i + ")", i);
             }
             TreeSet set = getSet(type);
-            set.add(new Integer(val));
+            set.add(val);
             i++;
             return i;
         }
@@ -728,7 +728,7 @@ public class CronExpression implements Serializable, Cloneable {
             }
 
             TreeSet set = getSet(type);
-            set.add(new Integer(val));
+            set.add(val);
             i++;
             return i;
         }
@@ -1212,14 +1212,14 @@ public class CronExpression implements Serializable, Cloneable {
                 return null;
             }
 
-            SortedSet st = null;
-            int t = 0;
+            SortedSet st;
+            int t;
 
             int sec = cl.get(Calendar.SECOND);
             int min = cl.get(Calendar.MINUTE);
 
             // get second.................................................
-            st = seconds.tailSet(new Integer(sec));
+            st = seconds.tailSet(sec);
             if (st != null && st.size() != 0) {
                 sec = ((Integer) st.first()).intValue();
             } else {
@@ -1698,7 +1698,7 @@ public class CronExpression implements Serializable, Cloneable {
     }
 
     public Object clone() {
-        CronExpression copy = null;
+        CronExpression copy;
         try {
             copy = new CronExpression(getCronExpression());
             if (getTimeZone() != null)

@@ -26,8 +26,10 @@ public class ConsoleManager {
     }
 
     public static boolean initial() throws Exception {
-        if (scheduleManagerFactory != null) {
-            return true;
+        synchronized (scheduleManagerFactory) {
+            if (scheduleManagerFactory != null) {
+                return true;
+            }
         }
         File file = new File(configFile);
         scheduleManagerFactory = new TBScheduleManagerFactory();

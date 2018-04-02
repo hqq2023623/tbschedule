@@ -2,7 +2,7 @@ package com.taobao.pamirs.schedule.strategy;
 
 import com.taobao.pamirs.schedule.strategy.ScheduleStrategy.Kind;
 
-public class ScheduleStrategyRunntime {
+public class ScheduleStrategyRuntime {
 
     /**
      * 任务类型
@@ -105,7 +105,7 @@ public class ScheduleStrategyRunntime {
 
     @Override
     public String toString() {
-        return "ScheduleStrategyRunntime [strategyName=" + strategyName
+        return "ScheduleStrategyRuntime [strategyName=" + strategyName
                 + ", uuid=" + uuid + ", ip=" + ip + ", kind=" + kind
                 + ", taskName=" + taskName + ", taskParameter=" + taskParameter
                 + ", requestNum=" + requestNum + ", currentNum=" + currentNum

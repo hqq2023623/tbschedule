@@ -82,12 +82,12 @@ public class ScheduleUtil {
     }
 
     /**
-     * 分配任务数量
-     *
+     * 按任务项分配任务数量
+     * 分配结果 ： 下标大于 taskItemNum % serverNum的为 (taskItemNum / serverNum) + 1
      * @param serverNum         总的服务器数量
      * @param taskItemNum       任务项数量
      * @param maxNumOfOneServer 每个server最大任务项数目
-     * @return
+     * @return 每个服务器分配的任务数量
      */
     public static int[] assignTaskNumber(int serverNum, int taskItemNum, int maxNumOfOneServer) {
         int[] taskNums = new int[serverNum];

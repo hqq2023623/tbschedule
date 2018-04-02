@@ -25,7 +25,7 @@ public class InitialDemoConfigData extends UnitilsJUnit4 {
     @Test
     public void initialConfigData() throws Exception {
         String baseTaskTypeName = "DemoTask";
-        while (this.scheduleManagerFactory.isZookeeperInitialSucess() == false) {
+        while (this.scheduleManagerFactory.isZookeeperInitialSuccess() == false) {
             Thread.sleep(1000);
         }
         scheduleManagerFactory.stopServer(null);

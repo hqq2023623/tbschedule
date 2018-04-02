@@ -152,7 +152,7 @@ class TBScheduleProcessorNotSleep<T> implements IScheduleProcessor, Runnable {
     public T getScheduleTaskId() {
         lockFetchID.lock();
         try {
-            T result = null;
+            T result;
             while (true) {
                 if (this.taskList.size() > 0) {
                     result = this.taskList.remove(0); // 按正序处理
@@ -186,7 +186,7 @@ class TBScheduleProcessorNotSleep<T> implements IScheduleProcessor, Runnable {
 
             List<T> result = new ArrayList<T>();
             int point = 0;
-            T tmpObject = null;
+            T tmpObject;
             while (point < size
                     && ((tmpObject = this.getScheduleTaskId()) != null)) {
                 result.add(tmpObject);
@@ -331,7 +331,7 @@ class TBScheduleProcessorNotSleep<T> implements IScheduleProcessor, Runnable {
     public void run() {
         long startTime = 0;
         long sequence = 0;
-        Object executeTask = null;
+        Object executeTask;
         while (true) {
             try {
                 if (this.isStopSchedule == true) { // 停止队列调度
@@ -406,7 +406,7 @@ class TBScheduleProcessorNotSleep<T> implements IScheduleProcessor, Runnable {
     }
 
     public void addSuccessNum(long num, long spendTime, String addr) {
-        this.statisticsInfo.addDealDataSucess(num);
+        this.statisticsInfo.addDealDataSuccess(num);
         this.statisticsInfo.addDealSpendTime(spendTime);
     }
 

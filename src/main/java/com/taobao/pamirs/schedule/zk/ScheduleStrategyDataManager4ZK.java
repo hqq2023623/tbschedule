@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.taobao.pamirs.schedule.strategy.ManagerFactoryInfo;
 import com.taobao.pamirs.schedule.strategy.ScheduleStrategy;
-import com.taobao.pamirs.schedule.strategy.ScheduleStrategyRunntime;
+import com.taobao.pamirs.schedule.strategy.ScheduleStrategyRuntime;
 import com.taobao.pamirs.schedule.strategy.TBScheduleManagerFactory;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -14,6 +14,9 @@ import java.io.Writer;
 import java.sql.Timestamp;
 import java.util.*;
 
+/**
+ * 管理 strategy、 factory 节点
+ */
 public class ScheduleStrategyDataManager4ZK {
 
     private ZKManager zkManager;
@@ -36,6 +39,7 @@ public class ScheduleStrategyDataManager4ZK {
         }
     }
 
+    //加载指定名称的调度策略
     public ScheduleStrategy loadStrategy(String strategyName)
             throws Exception {
         String zkPath = this.PATH_Strategy + "/" + strategyName;
@@ -43,10 +47,11 @@ public class ScheduleStrategyDataManager4ZK {
             return null;
         }
         String valueString = new String(this.getZooKeeper().getData(zkPath, false, null));
-        ScheduleStrategy result = (ScheduleStrategy) this.gson.fromJson(valueString, ScheduleStrategy.class);
+        ScheduleStrategy result = this.gson.fromJson(valueString, ScheduleStrategy.class);
         return result;
     }
 
+    //创建 /strategy/strategyName节点
     public void createScheduleStrategy(ScheduleStrategy scheduleStrategy) throws Exception {
         String zkPath = this.PATH_Strategy + "/" + scheduleStrategy.getStrategyName();
         String valueString = this.gson.toJson(scheduleStrategy);
@@ -106,14 +111,16 @@ public class ScheduleStrategyDataManager4ZK {
     }
 
     /**
-     * 注册ManagerFactory
+     * 注册ManagerFactory , 路径 /factory/**
+     * 如有有暂停或者不在IP范围内的就从zk删除返回对应的strategyName
+     * reRegisterManagerFactory时使用返回值停止调度返回的策略
      *
      * @param managerFactory
      * @return 需要全部注销的调度，例如当IP不在列表中
      * @throws Exception
      */
     public List<String> registerManagerFactory(TBScheduleManagerFactory managerFactory) throws Exception {
-
+        //新注册，给一个新的UUID,用$分隔， IP$HostName$UUID
         if (managerFactory.getUuid() == null) {
             String uuid = managerFactory.getIp() + "$" + managerFactory.getHostName() + "$" + UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
             String zkPath = this.PATH_ManagerFactory + "/" + uuid + "$";
@@ -122,7 +129,7 @@ public class ScheduleStrategyDataManager4ZK {
         } else {
             String zkPath = this.PATH_ManagerFactory + "/" + managerFactory.getUuid();
             if (this.getZooKeeper().exists(zkPath, false) == null) {
-                zkPath = this.getZooKeeper().create(zkPath, null, this.zkManager.getAcl(), CreateMode.EPHEMERAL);
+                this.getZooKeeper().create(zkPath, null, this.zkManager.getAcl(), CreateMode.EPHEMERAL);
             }
         }
 
@@ -133,17 +140,17 @@ public class ScheduleStrategyDataManager4ZK {
             if (ScheduleStrategy.STS_PAUSE.equalsIgnoreCase(scheduleStrategy.getSts()) == false && scheduleStrategy.getIPList() != null) {
                 for (String ip : scheduleStrategy.getIPList()) {
                     if (ip.equals("127.0.0.1") || ip.equalsIgnoreCase("localhost") || ip.equals(managerFactory.getIp()) || ip.equalsIgnoreCase(managerFactory.getHostName())) {
-                        //添加可管理TaskType
+                        //添加可管理TaskType（strategy?）
                         String zkPath = this.PATH_Strategy + "/" + scheduleStrategy.getStrategyName() + "/" + managerFactory.getUuid();
                         if (this.getZooKeeper().exists(zkPath, false) == null) {
-                            zkPath = this.getZooKeeper().create(zkPath, null, this.zkManager.getAcl(), CreateMode.EPHEMERAL);
+                            this.getZooKeeper().create(zkPath, null, this.zkManager.getAcl(), CreateMode.EPHEMERAL);
                         }
                         isFind = true;
                         break;
                     }
                 }
             }
-            if (isFind == false) {//清除原来注册的Factory
+            if (!isFind) {//清除原来注册的Factory
                 String zkPath = this.PATH_Strategy + "/" + scheduleStrategy.getStrategyName() + "/" + managerFactory.getUuid();
                 if (this.getZooKeeper().exists(zkPath, false) != null) {
                     ZKTools.deleteTree(this.getZooKeeper(), zkPath);
@@ -161,7 +168,7 @@ public class ScheduleStrategyDataManager4ZK {
      * @return
      * @throws Exception
      */
-    public void unRregisterManagerFactory(TBScheduleManagerFactory managerFactory) throws Exception {
+    public void unRegisterManagerFactory(TBScheduleManagerFactory managerFactory) throws Exception {
         for (String taskName : this.getZooKeeper().getChildren(this.PATH_Strategy, false)) {
             String zkPath = this.PATH_Strategy + "/" + taskName + "/" + managerFactory.getUuid();
             if (this.getZooKeeper().exists(zkPath, false) != null) {
@@ -170,14 +177,14 @@ public class ScheduleStrategyDataManager4ZK {
         }
     }
 
-    public ScheduleStrategyRunntime loadScheduleStrategyRunntime(String strategyName, String uuid) throws Exception {
+    public ScheduleStrategyRuntime loadScheduleStrategyRuntime(String strategyName, String uuid) throws Exception {
         String zkPath = this.PATH_Strategy + "/" + strategyName + "/" + uuid;
-        ScheduleStrategyRunntime result = null;
+        ScheduleStrategyRuntime result = null;
         if (this.getZooKeeper().exists(zkPath, false) != null) {
             byte[] value = this.getZooKeeper().getData(zkPath, false, null);
             if (value != null) {
                 String valueString = new String(value);
-                result = (ScheduleStrategyRunntime) this.gson.fromJson(valueString, ScheduleStrategyRunntime.class);
+                result = this.gson.fromJson(valueString, ScheduleStrategyRuntime.class);
                 if (null == result) {
                     throw new Exception("gson 反序列化异常,对象为null");
                 }
@@ -188,7 +195,7 @@ public class ScheduleStrategyDataManager4ZK {
                     throw new Exception("gson 反序列化异常,uuid为null");
                 }
             } else {
-                result = new ScheduleStrategyRunntime();
+                result = new ScheduleStrategyRuntime();
                 result.setStrategyName(strategyName);
                 result.setUuid(uuid);
                 result.setRequestNum(0);
@@ -204,33 +211,33 @@ public class ScheduleStrategyDataManager4ZK {
      * @return
      * @throws Exception
      */
-    public List<ScheduleStrategyRunntime> loadAllScheduleStrategyRunntime() throws Exception {
-        List<ScheduleStrategyRunntime> result = new ArrayList<ScheduleStrategyRunntime>();
+    public List<ScheduleStrategyRuntime> loadAllScheduleStrategyRuntime() throws Exception {
+        List<ScheduleStrategyRuntime> result = new ArrayList<ScheduleStrategyRuntime>();
         String zkPath = this.PATH_Strategy;
         for (String taskType : this.getZooKeeper().getChildren(zkPath, false)) {
             for (String uuid : this.getZooKeeper().getChildren(zkPath + "/" + taskType, false)) {
-                result.add(loadScheduleStrategyRunntime(taskType, uuid));
+                result.add(loadScheduleStrategyRuntime(taskType, uuid));
             }
         }
         return result;
     }
 
-    public List<ScheduleStrategyRunntime> loadAllScheduleStrategyRunntimeByUUID(String managerFactoryUUID) throws Exception {
-        List<ScheduleStrategyRunntime> result = new ArrayList<ScheduleStrategyRunntime>();
+    public List<ScheduleStrategyRuntime> loadAllScheduleStrategyRuntimeByUUID(String managerFactoryUUID) throws Exception {
+        List<ScheduleStrategyRuntime> result = new ArrayList<ScheduleStrategyRuntime>();
         String zkPath = this.PATH_Strategy;
 
         List<String> taskTypeList = this.getZooKeeper().getChildren(zkPath, false);
         Collections.sort(taskTypeList);
         for (String taskType : taskTypeList) {
             if (this.getZooKeeper().exists(zkPath + "/" + taskType + "/" + managerFactoryUUID, false) != null) {
-                result.add(loadScheduleStrategyRunntime(taskType, managerFactoryUUID));
+                result.add(loadScheduleStrategyRuntime(taskType, managerFactoryUUID));
             }
         }
         return result;
     }
 
-    public List<ScheduleStrategyRunntime> loadAllScheduleStrategyRunntimeByTaskType(String strategyName) throws Exception {
-        List<ScheduleStrategyRunntime> result = new ArrayList<ScheduleStrategyRunntime>();
+    public List<ScheduleStrategyRuntime> loadAllScheduleStrategyRuntimeByTaskType(String strategyName) throws Exception {
+        List<ScheduleStrategyRuntime> result = new ArrayList<ScheduleStrategyRuntime>();
         String zkPath = this.PATH_Strategy;
         if (this.getZooKeeper().exists(zkPath + "/" + strategyName, false) == null) {
             return result;
@@ -245,7 +252,7 @@ public class ScheduleStrategyDataManager4ZK {
         });
 
         for (String uuid : uuidList) {
-            result.add(loadScheduleStrategyRunntime(strategyName, uuid));
+            result.add(loadScheduleStrategyRuntime(strategyName, uuid));
         }
         return result;
     }
@@ -253,21 +260,21 @@ public class ScheduleStrategyDataManager4ZK {
     /**
      * 更新请求数量
      *
-     * @param taskType
-     * @param manangerFactoryUUID
+     * @param strategyName
+     * @param managerFactoryUUID
      * @param requestNum
      * @throws KeeperException
      * @throws InterruptedException
      */
-    public void updateStrategyRunntimeReqestNum(String strategyName, String manangerFactoryUUID, int requestNum) throws Exception {
-        String zkPath = this.PATH_Strategy + "/" + strategyName + "/" + manangerFactoryUUID;
-        ScheduleStrategyRunntime result = null;
+    public void updateStrategyRuntimeRequestNum(String strategyName, String managerFactoryUUID, int requestNum) throws Exception {
+        String zkPath = this.PATH_Strategy + "/" + strategyName + "/" + managerFactoryUUID;
+        ScheduleStrategyRuntime result = null;
         if (this.getZooKeeper().exists(zkPath, false) != null) {
-            result = this.loadScheduleStrategyRunntime(strategyName, manangerFactoryUUID);
+            result = this.loadScheduleStrategyRuntime(strategyName, managerFactoryUUID);
         } else {
-            result = new ScheduleStrategyRunntime();
+            result = new ScheduleStrategyRuntime();
             result.setStrategyName(strategyName);
-            result.setUuid(manangerFactoryUUID);
+            result.setUuid(managerFactoryUUID);
             result.setRequestNum(requestNum);
             result.setMessage("");
         }
@@ -280,19 +287,19 @@ public class ScheduleStrategyDataManager4ZK {
      * 更新调度过程中的信息
      *
      * @param strategyName
-     * @param manangerFactoryUUID
+     * @param managerFactoryUUID
      * @param message
      * @throws Exception
      */
-    public void updateStrategyRunntimeErrorMessage(String strategyName, String manangerFactoryUUID, String message) throws Exception {
-        String zkPath = this.PATH_Strategy + "/" + strategyName + "/" + manangerFactoryUUID;
-        ScheduleStrategyRunntime result = null;
+    public void updateStrategyRuntimeErrorMessage(String strategyName, String managerFactoryUUID, String message) throws Exception {
+        String zkPath = this.PATH_Strategy + "/" + strategyName + "/" + managerFactoryUUID;
+        ScheduleStrategyRuntime result = null;
         if (this.getZooKeeper().exists(zkPath, false) != null) {
-            result = this.loadScheduleStrategyRunntime(strategyName, manangerFactoryUUID);
+            result = this.loadScheduleStrategyRuntime(strategyName, managerFactoryUUID);
         } else {
-            result = new ScheduleStrategyRunntime();
+            result = new ScheduleStrategyRuntime();
             result.setStrategyName(strategyName);
-            result.setUuid(manangerFactoryUUID);
+            result.setUuid(managerFactoryUUID);
             result.setRequestNum(0);
         }
         result.setMessage(message);
@@ -351,8 +358,8 @@ public class ScheduleStrategyDataManager4ZK {
             } else {
                 writer.append("<font color=\"red\">该配置信息已经存在，如果需要更新，请配置强制更新\n</font>");
             }
+            writer.append(configNode.toString());
         }
-        writer.append(configNode.toString());
     }
 
     /**

@@ -1,5 +1,5 @@
 <%@page import="com.taobao.pamirs.schedule.ConsoleManager" %>
-<%@page import="com.taobao.pamirs.schedule.strategy.ScheduleStrategyRunntime" %>
+<%@page import="com.taobao.pamirs.schedule.strategy.ScheduleStrategyRuntime" %>
 <%@page import="java.util.ArrayList" %>
 <%@page import="java.util.List" %>
 <%@ page contentType="text/html; charset=UTF-8" %>
@@ -52,17 +52,17 @@
         <th>错误信息</th>
     </tr>
     <%
-        List<ScheduleStrategyRunntime> runntimeList = null;
+        List<ScheduleStrategyRuntime> runntimeList = null;
         if (strategyName != null && strategyName.trim().length() > 0) {
-            runntimeList = ConsoleManager.getScheduleStrategyManager().loadAllScheduleStrategyRunntimeByTaskType(strategyName);
+            runntimeList = ConsoleManager.getScheduleStrategyManager().loadAllScheduleStrategyRuntimeByTaskType(strategyName);
         } else if (uuid != null && uuid.trim().length() > 0) {
-            runntimeList = ConsoleManager.getScheduleStrategyManager().loadAllScheduleStrategyRunntimeByUUID(uuid);
+            runntimeList = ConsoleManager.getScheduleStrategyManager().loadAllScheduleStrategyRuntimeByUUID(uuid);
         } else {
-            runntimeList = new ArrayList<ScheduleStrategyRunntime>();
+            runntimeList = new ArrayList<ScheduleStrategyRuntime>();
         }
 
         for (int i = 0; i < runntimeList.size(); i++) {
-            ScheduleStrategyRunntime run = runntimeList.get(i);
+            ScheduleStrategyRuntime run = runntimeList.get(i);
     %>
     <tr>
         <td><%=(i + 1)%>

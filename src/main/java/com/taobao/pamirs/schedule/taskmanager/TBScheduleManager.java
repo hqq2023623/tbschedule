@@ -454,7 +454,7 @@ class PauseOrResumeScheduleTask extends java.util.TimerTask {
 class StatisticsInfo{
 	private AtomicLong fetchDataNum = new AtomicLong(0);//读取次数
 	private AtomicLong fetchDataCount = new AtomicLong(0);//读取的数据量
-	private AtomicLong dealDataSucess = new AtomicLong(0);//处理成功的数据量
+	private AtomicLong dealDataSuccess = new AtomicLong(0);//处理成功的数据量
 	private AtomicLong dealDataFail = new AtomicLong(0);//处理失败的数据量
 	private AtomicLong dealSpendTime = new AtomicLong(0);//处理总耗时,没有做同步，可能存在一定的误差
 	private AtomicLong otherCompareCount = new AtomicLong(0);//特殊比较的次数
@@ -465,8 +465,8 @@ class StatisticsInfo{
 	public void addFetchDataCount(long value){
 		this.fetchDataCount.addAndGet(value);
 	}
-	public void addDealDataSucess(long value){
-		this.dealDataSucess.addAndGet(value);
+	public void addDealDataSuccess(long value){
+		this.dealDataSuccess.addAndGet(value);
 	}
 	public void addDealDataFail(long value){
 		this.dealDataFail.addAndGet(value);
@@ -480,7 +480,7 @@ class StatisticsInfo{
     public String getDealDescription(){
     	return "FetchDataCount=" + this.fetchDataCount 
     	  +",FetchDataNum=" + this.fetchDataNum
-    	  +",DealDataSucess=" + this.dealDataSucess
+    	  +",DealDataSuccess=" + this.dealDataSuccess
     	  +",DealDataFail=" + this.dealDataFail
     	  +",DealSpendTime=" + this.dealSpendTime
     	  +",otherCompareCount=" + this.otherCompareCount;    	  

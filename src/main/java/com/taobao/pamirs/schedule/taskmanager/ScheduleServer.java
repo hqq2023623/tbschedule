@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.UUID;
 
 /**
- * 调度服务器信息定义
+ * 调度服务器信息定义,一个实例表示一个任务处理器,负责任务和策略的管理、任务采集和执行
  *
  * @author xuannan
  */
@@ -57,7 +57,7 @@ public class ScheduleServer {
     private Timestamp lastFetchDataTime;
     /**
      * 处理描述信息，例如读取的任务数量，处理成功的任务数量，处理失败的数量，处理耗时
-     * FetchDataCount=4430,FetcheDataNum=438570,DealDataSucess=438570,DealDataFail=0,DealSpendTime=651066
+     * FetchDataCount=4430,FetcheDataNum=438570,DealDataSuccess=438570,DealDataFail=0,DealSpendTime=651066
      */
     private String dealInfoDesc;
 

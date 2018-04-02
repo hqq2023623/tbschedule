@@ -2,29 +2,34 @@ package com.taobao.pamirs.schedule.strategy;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 
+/**
+ * 调度策略
+ */
 public class ScheduleStrategy {
     public enum Kind {Schedule, Java, Bean}
 
     /**
-     * 任务类型
+     * 任务类型 , 策略名称
      */
     private String strategyName;
 
     private String[] IPList;
 
+    //单JVM最大线程组数量
     private int numOfSingleServer;
     /**
      * 指定需要执行调度的机器数量
      */
     private int assignNum;
 
+    //任务类型
     private Kind kind;
 
     /**
-     * Schedule Name,Class Name、Bean Name
+     * 任务名称Schedule Name,Class Name、Bean Name
      */
     private String taskName;
-
+    //  任务参数
     private String taskParameter;
 
     /**

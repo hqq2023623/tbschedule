@@ -49,7 +49,7 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
                         //log.error("isRuntimeInfoInitial = " + isRuntimeInfoInitial);
                         try {
                             initialRunningInfo();
-                            isRuntimeInfoInitial = scheduleCenter.isInitialRunningInfoSucuss(
+                            isRuntimeInfoInitial = scheduleCenter.isInitialRunningInfoSuccess(
                                     currenScheduleServer.getBaseTaskType(),
                                     currenScheduleServer.getOwnSign());
                         } catch (Throwable e) {
@@ -71,12 +71,12 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
                         count = count + 1;
                         // log.error("尝试获取调度队列，第" + count + "次 ") ;
                     }
-                    String tmpStr = "TaskItemDefine:";
+                    StringBuilder tmpStr = new StringBuilder("TaskItemDefine:");
                     for (int i = 0; i < currentTaskItemList.size(); i++) {
                         if (i > 0) {
-                            tmpStr = tmpStr + ",";
+                            tmpStr.append(",");
                         }
-                        tmpStr = tmpStr + currentTaskItemList.get(i);
+                        tmpStr.append(currentTaskItemList.get(i));
                     }
                     log.info("获取到任务处理队列，开始调度：" + tmpStr + "  of  " + currenScheduleServer.getUuid());
 
@@ -161,10 +161,9 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
      */
     private boolean isExistZombieServ(String type, Map<String, Stat> statMap) throws Exception {
         boolean exist = false;
-        for (String key : statMap.keySet()) {
-            Stat s = statMap.get(key);
-            if (this.scheduleCenter.getSystemTime() - s.getMtime() > this.taskTypeInfo.getHeartBeatRate() * 40) {
-                log.error("zombie serverList exists! serv=" + key + " ,type=" + type + "超过40次心跳周期未更新");
+        for (Map.Entry<String, Stat> entry : statMap.entrySet()) {
+            if (this.scheduleCenter.getSystemTime() - entry.getValue().getMtime() > this.taskTypeInfo.getHeartBeatRate() * 40) {
+                log.error("zombie serverList exists! serv=" + entry.getKey() + " ,type=" + type + "超过40次心跳周期未更新");
                 exist = true;
             }
         }
@@ -197,7 +196,7 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
             return;
         }
         //设置初始化成功标准，避免在leader转换的时候，新增的线程组初始化失败
-        scheduleCenter.setInitialRunningInfoSucuss(this.currenScheduleServer.getBaseTaskType(), this.currenScheduleServer.getTaskType(), this.currenScheduleServer.getUuid());
+        scheduleCenter.setInitialRunningInfoSuccess(this.currenScheduleServer.getBaseTaskType(), this.currenScheduleServer.getTaskType(), this.currenScheduleServer.getUuid());
         scheduleCenter.clearTaskItem(this.currenScheduleServer.getTaskType(), serverList);
         scheduleCenter.assignTaskItem(this.currenScheduleServer.getTaskType(), this.currenScheduleServer.getUuid(), this.taskTypeInfo.getMaxTaskItemsOfOneThreadGroup(), serverList);
     }
