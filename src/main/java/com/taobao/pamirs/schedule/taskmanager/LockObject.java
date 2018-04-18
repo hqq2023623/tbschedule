@@ -29,7 +29,7 @@ class LockObject {
         }
     }
 
-    public void realseThread() {
+    public void releaseThread() {
         synchronized (this) {
             m_threadCount = m_threadCount - 1;
         }
@@ -40,7 +40,7 @@ class LockObject {
      *
      * @return boolean
      */
-    public boolean realseThreadButNotLast() {
+    public boolean releaseThreadButNotLast() {
         synchronized (this) {
             if (this.m_threadCount == 1) {
                 return false;

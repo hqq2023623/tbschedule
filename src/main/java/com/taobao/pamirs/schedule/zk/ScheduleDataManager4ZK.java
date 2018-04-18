@@ -779,7 +779,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
             if (curServerValue == null) {
                 this.getZooKeeper().setData(zkPath + "/" + name + "/cur_server", serverList.get(point).getBytes(), -1);
                 this.getZooKeeper().setData(zkPath + "/" + name + "/req_server", null, -1);
-            } else if (new String(curServerValue).equals(serverList.get(point)) == true && reqServerValue == null) {
+            } else if (new String(curServerValue).equals(serverList.get(point)) && reqServerValue == null) {
                 //不需要做任何事情
                 unModifyCount = unModifyCount + 1;
             } else {

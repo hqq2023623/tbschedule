@@ -13,7 +13,7 @@ import java.util.Date;
  * @author xuannan
  */
 public class ScheduleUtil {
-    public static String OWN_SIGN_BASE = "BASE";
+    public static final String OWN_SIGN_BASE = "BASE";
 
     public static String getLocalHostName() {
         try {

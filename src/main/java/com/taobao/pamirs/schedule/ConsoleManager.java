@@ -14,19 +14,22 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class ConsoleManager {
-    protected static transient Logger log = LoggerFactory.getLogger(ConsoleManager.class);
+    protected static final transient Logger log = LoggerFactory.getLogger(ConsoleManager.class);
 
     public final static String configFile = System.getProperty("user.dir") + File.separator
             + "pamirsScheduleConfig.properties";
 
     private static TBScheduleManagerFactory scheduleManagerFactory;
 
+    private static final Object initLock = new Object();
+
     public static boolean isInitial() throws Exception {
         return scheduleManagerFactory != null;
     }
 
     public static boolean initial() throws Exception {
-        synchronized (scheduleManagerFactory) {
+        //这句话导致只能返回true , null不能被sync
+        synchronized (initLock) {
             if (scheduleManagerFactory != null) {
                 return true;
             }
@@ -35,7 +38,7 @@ public class ConsoleManager {
         scheduleManagerFactory = new TBScheduleManagerFactory();
         scheduleManagerFactory.start = false;
 
-        if (file.exists() == true) {
+        if (file.exists()) {
             //Console不启动调度能力
             Properties p = new Properties();
             FileReader reader = new FileReader(file);
@@ -50,21 +53,21 @@ public class ConsoleManager {
     }
 
     public static TBScheduleManagerFactory getScheduleManagerFactory() throws Exception {
-        if (isInitial() == false) {
+        if (!isInitial()) {
             initial();
         }
         return scheduleManagerFactory;
     }
 
     public static IScheduleDataManager getScheduleDataManager() throws Exception {
-        if (isInitial() == false) {
+        if (!isInitial()) {
             initial();
         }
         return scheduleManagerFactory.getScheduleDataManager();
     }
 
     public static ScheduleStrategyDataManager4ZK getScheduleStrategyManager() throws Exception {
-        if (isInitial() == false) {
+        if (!isInitial()) {
             initial();
         }
         return scheduleManagerFactory.getScheduleStrategyManager();
@@ -73,7 +76,7 @@ public class ConsoleManager {
     public static Properties loadConfig() throws IOException {
         File file = new File(configFile);
         Properties properties;
-        if (file.exists() == false) {
+        if (!file.exists()) {
             properties = ZKManager.createProperties();
         } else {
             properties = new Properties();

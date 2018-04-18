@@ -91,7 +91,7 @@ public class DBDemoMulti implements IScheduleTaskDealMulti<Long> {
         try {
             conn = dataSource.getConnection();
             for (int index = 0; index < tasks.length; index++) {
-                id = ((Long) tasks[index]).longValue();
+                id = tasks[index];
                 log.debug("处理任务：" + id + " 成功！");
                 String sql = "update SCHEDULE_TEST SET STS ='Y' ,DEAL_COUNT = DEAL_COUNT + 1 WHERE ID = ? and STS ='N' ";
                 PreparedStatement statement = conn.prepareStatement(sql);

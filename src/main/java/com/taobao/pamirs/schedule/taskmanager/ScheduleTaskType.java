@@ -82,8 +82,8 @@ public class ScheduleTaskType implements java.io.Serializable {
     //任务类型：静态static,动态dynamic
     private String taskKind = TASKKIND_STATIC;
 
-    public static String TASKKIND_STATIC = "static";
-    public static String TASKKIND_DYNAMIC = "dynamic";
+    public static final String TASKKIND_STATIC = "static";
+    public static final String TASKKIND_DYNAMIC = "dynamic";
 
 
     /**
@@ -105,8 +105,8 @@ public class ScheduleTaskType implements java.io.Serializable {
      */
     private String sts = STS_RESUME;
 
-    public static String STS_PAUSE = "pause";
-    public static String STS_RESUME = "resume";
+    public static final String STS_PAUSE = "pause";
+    public static final String STS_RESUME = "resume";
 
     public static String[] splitTaskItem(String str) {
         List<String> list = new ArrayList<String>();

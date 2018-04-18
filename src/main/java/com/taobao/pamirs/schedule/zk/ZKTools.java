@@ -15,7 +15,7 @@ public class ZKTools {
         String[] list = path.split("/");
         String zkPath = "";
         for (String str : list) {
-            if (str.equals("") == false) {
+            if (!"".equals(str)) {
                 zkPath = zkPath + "/" + str;
                 if (zk.exists(zkPath, false) == null) {
                     zk.create(zkPath, null, acl, createMode);

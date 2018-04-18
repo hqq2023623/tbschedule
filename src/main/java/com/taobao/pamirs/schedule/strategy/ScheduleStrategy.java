@@ -37,8 +37,8 @@ public class ScheduleStrategy {
      */
     private String sts = STS_RESUME;
 
-    public static String STS_PAUSE = "pause";
-    public static String STS_RESUME = "resume";
+    public static final String STS_PAUSE = "pause";
+    public static final String STS_RESUME = "resume";
 
 
     public String toString() {

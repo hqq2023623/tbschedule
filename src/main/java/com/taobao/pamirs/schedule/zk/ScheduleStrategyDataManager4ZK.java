@@ -137,7 +137,7 @@ public class ScheduleStrategyDataManager4ZK {
         for (ScheduleStrategy scheduleStrategy : loadAllScheduleStrategy()) {
             boolean isFind = false;
             //暂停或者不在IP范围
-            if (ScheduleStrategy.STS_PAUSE.equalsIgnoreCase(scheduleStrategy.getSts()) == false && scheduleStrategy.getIPList() != null) {
+            if (!ScheduleStrategy.STS_PAUSE.equalsIgnoreCase(scheduleStrategy.getSts()) && scheduleStrategy.getIPList() != null) {
                 for (String ip : scheduleStrategy.getIPList()) {
                     if (ip.equals("127.0.0.1") || ip.equalsIgnoreCase("localhost") || ip.equals(managerFactory.getIp()) || ip.equalsIgnoreCase(managerFactory.getHostName())) {
                         //添加可管理TaskType（strategy?）
@@ -268,7 +268,7 @@ public class ScheduleStrategyDataManager4ZK {
      */
     public void updateStrategyRuntimeRequestNum(String strategyName, String managerFactoryUUID, int requestNum) throws Exception {
         String zkPath = this.PATH_Strategy + "/" + strategyName + "/" + managerFactoryUUID;
-        ScheduleStrategyRuntime result = null;
+        ScheduleStrategyRuntime result;
         if (this.getZooKeeper().exists(zkPath, false) != null) {
             result = this.loadScheduleStrategyRuntime(strategyName, managerFactoryUUID);
         } else {

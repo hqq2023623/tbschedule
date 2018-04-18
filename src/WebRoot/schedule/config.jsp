@@ -38,18 +38,18 @@
         <tr>
             <td>Zookeeper地址:</td>
             <td><input type="text" name="zkConnectString"
-                       value="<%=p.getProperty(ZKManager.keys.zkConnectString.toString())%>" style="width:300"></td>
+                       value="<%=p.getProperty(ZKManager.Keys.zkConnectString.toString())%>" style="width:300"></td>
             <td>格式: IP地址：端口</td>
         </tr>
         <tr>
             <td>Zookeeper超时:</td>
             <td><input type="text" name="zkSessionTimeout"
-                       value="<%=p.getProperty(ZKManager.keys.zkSessionTimeout.toString())%>" style="width:300"></td>
+                       value="<%=p.getProperty(ZKManager.Keys.zkSessionTimeout.toString())%>" style="width:300"></td>
             <td>单位毫秒</td>
         </tr>
         <tr>
             <td>Zookeeper根目录：</td>
-            <td><input type="text" name="rootPath" value="<%=p.getProperty(ZKManager.keys.rootPath.toString())%>"
+            <td><input type="text" name="rootPath" value="<%=p.getProperty(ZKManager.Keys.rootPath.toString())%>"
                        style="width:300"></td>
             <td>例如：/taobao-pamirs-schedule/huijin,，可以是一级目录，也可以是多级目录，注意不同调度域间不能有父子关系<br/>
                 通过切换此属性来实现多个调度域的管理
@@ -57,13 +57,13 @@
         </tr>
         <tr>
             <td>Zookeeper用户：</td>
-            <td><input type="text" name="userName" value="<%=p.getProperty(ZKManager.keys.userName.toString())%>"
+            <td><input type="text" name="userName" value="<%=p.getProperty(ZKManager.Keys.userName.toString())%>"
                        style="width:300"></td>
             <td></td>
         </tr>
         <tr>
             <td>Zookeeper密码：</td>
-            <td><input type="text" name="password" value="<%=p.getProperty(ZKManager.keys.password.toString())%>"
+            <td><input type="text" name="password" value="<%=p.getProperty(ZKManager.Keys.password.toString())%>"
                        style="width:300"></td>
             <td></td>
         </tr>

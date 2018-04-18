@@ -24,7 +24,7 @@ public class ZKManager {
     private Properties properties;
     private boolean isCheckParentPath = true;
 
-    public enum keys {
+    public enum Keys {
         zkConnectString, rootPath, userName, password, zkSessionTimeout, isCheckParentPath
     }
 
@@ -53,17 +53,17 @@ public class ZKManager {
     }
 
     private void createZookeeper(final CountDownLatch connectionLatch) throws Exception {
-        zk = new ZooKeeper(this.properties.getProperty(keys.zkConnectString
+        zk = new ZooKeeper(this.properties.getProperty(Keys.zkConnectString
                 .toString()), Integer.parseInt(this.properties
-                .getProperty(keys.zkSessionTimeout.toString())),
+                .getProperty(Keys.zkSessionTimeout.toString())),
                 new Watcher() {
                     public void process(WatchedEvent event) {
                         sessionEvent(connectionLatch, event);
                     }
                 });
-        String authString = this.properties.getProperty(keys.userName.toString())
-                + ":" + this.properties.getProperty(keys.password.toString());
-        this.isCheckParentPath = Boolean.parseBoolean(this.properties.getProperty(keys.isCheckParentPath.toString(), "true"));
+        String authString = this.properties.getProperty(Keys.userName.toString())
+                + ":" + this.properties.getProperty(Keys.password.toString());
+        this.isCheckParentPath = Boolean.parseBoolean(this.properties.getProperty(Keys.isCheckParentPath.toString(), "true"));
         zk.addAuthInfo("digest", authString.getBytes());
         acl.clear();
         acl.add(new ACL(ZooDefs.Perms.ALL, new Id("digest",
@@ -113,22 +113,22 @@ public class ZKManager {
 
     public static Properties createProperties() {
         Properties result = new Properties();
-        result.setProperty(keys.zkConnectString.toString(), "localhost:2181");
-        result.setProperty(keys.rootPath.toString(), "/taobao-pamirs-schedule/huijin");
-        result.setProperty(keys.userName.toString(), "ScheduleAdmin");
-        result.setProperty(keys.password.toString(), "password");
-        result.setProperty(keys.zkSessionTimeout.toString(), "60000");
-        result.setProperty(keys.isCheckParentPath.toString(), "true");
+        result.setProperty(Keys.zkConnectString.toString(), "localhost:2181");
+        result.setProperty(Keys.rootPath.toString(), "/taobao-pamirs-schedule/huijin");
+        result.setProperty(Keys.userName.toString(), "ScheduleAdmin");
+        result.setProperty(Keys.password.toString(), "password");
+        result.setProperty(Keys.zkSessionTimeout.toString(), "60000");
+        result.setProperty(Keys.isCheckParentPath.toString(), "true");
 
         return result;
     }
 
     public String getRootPath() {
-        return this.properties.getProperty(keys.rootPath.toString());
+        return this.properties.getProperty(Keys.rootPath.toString());
     }
 
     public String getConnectStr() {
-        return this.properties.getProperty(keys.zkConnectString.toString());
+        return this.properties.getProperty(Keys.zkConnectString.toString());
     }
 
     public boolean checkZookeeperState() throws Exception {

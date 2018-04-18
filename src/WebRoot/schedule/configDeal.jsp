@@ -5,11 +5,11 @@
 <%
 
     Properties p = new Properties();
-    p.setProperty(ZKManager.keys.zkConnectString.toString(), request.getParameter(ZKManager.keys.zkConnectString.toString()));
-    p.setProperty(ZKManager.keys.rootPath.toString(), request.getParameter(ZKManager.keys.rootPath.toString()));
-    p.setProperty(ZKManager.keys.userName.toString(), request.getParameter(ZKManager.keys.userName.toString()));
-    p.setProperty(ZKManager.keys.password.toString(), request.getParameter(ZKManager.keys.password.toString()));
-    p.setProperty(ZKManager.keys.zkSessionTimeout.toString(), request.getParameter(ZKManager.keys.zkSessionTimeout.toString()));
+    p.setProperty(ZKManager.Keys.zkConnectString.toString(), request.getParameter(ZKManager.Keys.zkConnectString.toString()));
+    p.setProperty(ZKManager.Keys.rootPath.toString(), request.getParameter(ZKManager.Keys.rootPath.toString()));
+    p.setProperty(ZKManager.Keys.userName.toString(), request.getParameter(ZKManager.Keys.userName.toString()));
+    p.setProperty(ZKManager.Keys.password.toString(), request.getParameter(ZKManager.Keys.password.toString()));
+    p.setProperty(ZKManager.Keys.zkSessionTimeout.toString(), request.getParameter(ZKManager.Keys.zkSessionTimeout.toString()));
     try {
         ConsoleManager.saveConfigInfo(p);
     } catch (Exception e) {

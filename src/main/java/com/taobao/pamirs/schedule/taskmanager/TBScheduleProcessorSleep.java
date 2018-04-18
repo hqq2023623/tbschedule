@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Array;
 import java.sql.Timestamp;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -165,27 +165,27 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor, Runnable {
 
             List<TaskItemDefine> taskItems = this.scheduleManager.getCurrentScheduleTaskItemList();
             // 根据队列信息查询需要调度的数据，然后增加到任务列表中
-            if (taskItems.size() > 0) {
-                List<TaskItemDefine> tmpTaskList = new ArrayList<TaskItemDefine>();
-                synchronized (taskItems) {
-                    for (TaskItemDefine taskItemDefine : taskItems) {
-                        tmpTaskList.add(taskItemDefine);
+            // 这里的同步是为了保证taskItems的值是最新的,但是它是一个copyOnWrite,也不能保证就是最新的
+            synchronized (taskItems) {
+                if (taskItems.size() > 0) {
+                    List<TaskItemDefine> tmpTaskList = new LinkedList<TaskItemDefine>();
+                    tmpTaskList.addAll(taskItems);
+                    List<T> tmpList = this.taskDealBean.selectTasks(
+                            taskTypeInfo.getTaskParameter(),
+                            scheduleManager.getScheduleServer().getOwnSign(),
+                            this.scheduleManager.getTaskItemCount(), tmpTaskList,
+                            taskTypeInfo.getFetchDataNumber());
+                    scheduleManager.getScheduleServer().setLastFetchDataTime(new Timestamp(scheduleManager.scheduleCenter.getSystemTime()));
+                    if (tmpList != null && !tmpList.isEmpty()) {
+                        this.taskList.addAll(tmpList);
+                    }
+                } else {
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("没有获取到需要处理的数据队列");
                     }
                 }
-                List<T> tmpList = this.taskDealBean.selectTasks(
-                        taskTypeInfo.getTaskParameter(),
-                        scheduleManager.getScheduleServer().getOwnSign(),
-                        this.scheduleManager.getTaskItemCount(), tmpTaskList,
-                        taskTypeInfo.getFetchDataNumber());
-                scheduleManager.getScheduleServer().setLastFetchDataTime(new Timestamp(scheduleManager.scheduleCenter.getSystemTime()));
-                if (tmpList != null) {
-                    this.taskList.addAll(tmpList);
-                }
-            } else {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("没有获取到需要处理的数据队列");
-                }
             }
+
             addFetchNum(taskList.size(), "TBScheduleProcessor.loadScheduleData");
             return this.taskList.size();
         } catch (Throwable ex) {
@@ -202,12 +202,12 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor, Runnable {
                 this.m_lockObject.addThread();
                 Object executeTask;
                 while (true) {
-                    if (this.isStopSchedule == true) {//停止队列调度
-                        this.m_lockObject.realseThread();
+                    if (this.isStopSchedule) {//停止队列调度
+                        this.m_lockObject.releaseThread();
                         this.m_lockObject.notifyOtherThread();//通知所有的休眠线程
                         synchronized (this.threadList) {
                             this.threadList.remove(Thread.currentThread());
-                            if (this.threadList.size() == 0) {
+                            if (this.threadList.isEmpty()) {
                                 this.scheduleManager.unRegisterScheduleServer();
                             }
                         }
@@ -215,7 +215,7 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor, Runnable {
                     }
 
                     //加载调度任务
-                    if (this.isMutilTask == false) {
+                    if (!this.isMutilTask) {
                         executeTask = this.getScheduleTaskId();
                     } else {
                         executeTask = this.getScheduleTaskIdMulti();
@@ -227,8 +227,8 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor, Runnable {
 
                     try {//运行相关的程序
                         startTime = scheduleManager.scheduleCenter.getSystemTime();
-                        if (this.isMutilTask == false) {
-                            if (((IScheduleTaskDealSingle) this.taskDealBean).execute(executeTask, scheduleManager.getScheduleServer().getOwnSign()) == true) {
+                        if (!this.isMutilTask) {
+                            if (((IScheduleTaskDealSingle) this.taskDealBean).execute(executeTask, scheduleManager.getScheduleServer().getOwnSign())) {
                                 addSuccessNum(1, scheduleManager.scheduleCenter.getSystemTime()
                                                 - startTime,
                                         "com.taobao.pamirs.schedule.TBScheduleProcessorSleep.run");
@@ -239,7 +239,7 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor, Runnable {
                             }
                         } else {
                             if (((IScheduleTaskDealMulti) this.taskDealBean)
-                                    .execute((Object[]) executeTask, scheduleManager.getScheduleServer().getOwnSign()) == true) {
+                                    .execute((Object[]) executeTask, scheduleManager.getScheduleServer().getOwnSign())) {
                                 addSuccessNum(((Object[]) executeTask).length, scheduleManager.scheduleCenter.getSystemTime()
                                                 - startTime,
                                         "com.taobao.pamirs.schedule.TBScheduleProcessorSleep.run");
@@ -250,7 +250,7 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor, Runnable {
                             }
                         }
                     } catch (Throwable ex) {
-                        if (this.isMutilTask == false) {
+                        if (!this.isMutilTask) {
                             addFailNum(1, scheduleManager.scheduleCenter.getSystemTime() - startTime,
                                     "TBScheduleProcessor.run");
                         } else {
@@ -265,7 +265,7 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor, Runnable {
                 if (logger.isTraceEnabled()) {
                     logger.trace(Thread.currentThread().getName() + "：当前运行线程数量:" + this.m_lockObject.count());
                 }
-                if (this.m_lockObject.realseThreadButNotLast() == false) {
+                if (!this.m_lockObject.releaseThreadButNotLast()) {
                     int size;
                     Thread.currentThread().sleep(100);
                     startTime = scheduleManager.scheduleCenter.getSystemTime();
@@ -275,7 +275,7 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor, Runnable {
                         this.m_lockObject.notifyOtherThread();
                     } else {
                         //判断当没有数据的是否，是否需要退出调度
-                        if (this.isStopSchedule == false && this.scheduleManager.isContinueWhenData() == true) {
+                        if (!this.isStopSchedule && this.scheduleManager.isContinueWhenData()) {
                             if (logger.isTraceEnabled()) {
                                 logger.trace("没有装载到数据，start sleep");
                             }
@@ -291,7 +291,7 @@ class TBScheduleProcessorSleep<T> implements IScheduleProcessor, Runnable {
                             this.m_lockObject.notifyOtherThread();
                         }
                     }
-                    this.m_lockObject.realseThread();
+                    this.m_lockObject.releaseThread();
                 } else {// 将当前线程放置到等待队列中。直到有线程装载到了新的任务数据
                     if (logger.isTraceEnabled()) {
                         logger.trace("不是最后一个线程，sleep");
